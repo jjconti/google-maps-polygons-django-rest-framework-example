@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Simple Polygon Map for Mozio (Search)</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 100%;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        polygons = []
+
+        function initMap() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                center: {
+                    lat: -31.633333,
+                    lng: -60.7
+                }, // arbitrary initial point
+                zoom: 4,
+                mapTypeId: google.maps.MapTypeId.TERRAIN
+            });
+
+            // Load saved polygons, but don't show them
+            $.ajax({
+                url: '/polygons/',
+                type: 'GET',
+                contentType: 'application/json',
+                cache: false,
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log("Error retriving: " + JSON.stringify(jqXHR));
+                },
+                success: function(data) {
+                    var results = data["results"];
+                    console.log("Got: " + results)
+                    for (i in results) {
+                        var encoded = results[i]["encoded"]
+                        path = google.maps.geometry.encoding.decodePath(decodeURIComponent(encoded));
+                        polygon = new google.maps.Polygon({
+                            paths: path,
+                            clickable: false,
+                            editable: true,
+                            visible: false,
+                            strokeColor: '#00FF00',
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: '#00FF00',
+                            fillOpacity: 0.35
+                        })
+                        polygons.push(polygon);
+                        polygon.setMap(map);
+                        console.log();
+                    }
+                }
+            });
+
+            // When a user clicks on the map, if the point is cotained in
+            // a polygon, it is show.
+            google.maps.event.addListener(map, 'click', function(e) {
+                for (i in polygons) {
+                    if (google.maps.geometry.poly.containsLocation(e.latLng, polygons[i])) {
+                        polygons[i].setVisible(true);
+                        break;
+                    }
+                }
+            });
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMy1XVqUls8xcnU6kjZ7XehbjrZqlkAJo&signed_in=true&callback=initMap&libraries=drawing,geometry"></script>
+</body>
+
+</html>
