@@ -52,7 +52,7 @@
             return controlText;
         }
 
-        function ClearControl(controlDiv, map) {
+        function ClearControl(controlDiv) {
             controlUI = ControlUI();
             controlUI.title = 'Click to clear the map';
             controlDiv.appendChild(controlUI);
@@ -68,7 +68,7 @@
             });
         }
 
-        function SubmitControl(controlDiv, map) {
+        function SubmitControl(controlDiv) {
             controlUI = ControlUI();
             controlUI.title = 'Click to submit the data';
             controlDiv.appendChild(controlUI);
@@ -133,10 +133,10 @@
 
             // Add buttons to the map
             var clearControlDiv = document.createElement('div');
-            var clearControl = new ClearControl(clearControlDiv, map);
+            var clearControl = new ClearControl(clearControlDiv);
             clearControlDiv.index = 1;
             var submitControlDiv = document.createElement('div');
-            var submitControl = new SubmitControl(submitControlDiv, map);
+            var submitControl = new SubmitControl(submitControlDiv);
             submitControlDiv.index = 1;
             map.controls[google.maps.ControlPosition.TOP_RIGHT].push(clearControlDiv);
             map.controls[google.maps.ControlPosition.TOP_RIGHT].push(submitControlDiv);
