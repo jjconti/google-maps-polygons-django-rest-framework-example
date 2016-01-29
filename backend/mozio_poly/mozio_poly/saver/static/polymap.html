@@ -102,6 +102,14 @@
             });
         }
 
+        function CoordsDisplay(controlDiv) {
+            controlUI = ControlUI();
+            controlDiv.appendChild(controlUI);
+            controlText = ControlText();
+            controlText.innerHTML = '';
+            controlUI.appendChild(controlText);
+        }
+
         // Map
 
         function initMap() {
@@ -138,8 +146,12 @@
             var submitControlDiv = document.createElement('div');
             var submitControl = new SubmitControl(submitControlDiv);
             submitControlDiv.index = 1;
+            var coordsDisplayDiv = document.createElement('div');
+            var coordsDisplay = new CoordsDisplay(coordsDisplayDiv);
+            coordsDisplayDiv.index = 1;
             map.controls[google.maps.ControlPosition.TOP_RIGHT].push(clearControlDiv);
             map.controls[google.maps.ControlPosition.TOP_RIGHT].push(submitControlDiv);
+            map.controls[google.maps.ControlPosition.TOP_RIGHT].push(coordsDisplayDiv);
 
             // Load saved polygons
             $.ajax({
@@ -176,6 +188,19 @@
             google.maps.event.addDomListener(drawingManager, 'polygoncomplete', function(polygon) {
                 polygons.push(polygon);
             });
+
+            google.maps.event.addListener(map, 'mousemove', function (event) {
+                displayCoordinates(event.latLng);
+            });
+
+            function displayCoordinates(pnt) {
+              coordsDisplayDiv.index = 1;
+              var lat = pnt.lat();
+              lat = lat.toFixed(4);
+              var lng = pnt.lng();
+              lng = lng.toFixed(4);
+              coordsDisplayDiv.children[0].innerHTML = "Latitude: " + lat + "  Longitude: " + lng;
+          }
         }
     </script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMy1XVqUls8xcnU6kjZ7XehbjrZqlkAJo&signed_in=true&callback=initMap&libraries=drawing,geometry"></script>
