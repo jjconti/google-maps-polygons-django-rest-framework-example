@@ -75,6 +75,31 @@
             controlText = ControlText();
             controlText.innerHTML = 'Submit';
             controlUI.appendChild(controlText);
+
+            controlUI.addEventListener('click', function() {
+                var paths = []
+                var post_date = new Date().toISOString();
+                for (i in polygons) {
+                    path = polygons[i].getPath();
+                    paths.push(path)
+                    var encodedString = google.maps.geometry.encoding.encodePath(path);
+                    // send polygons to storage
+                    $.ajax({
+                        url: '/polygons/',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        cache: false,
+                        dataType: 'json',
+                        data: '{"post_date":"' + post_date + '", "encoded":"' + encodeURIComponent(encodedString) + '"}',
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.log("Error saving: " + JSON.stringify(jqXHR));
+                        },
+                        success: function(data) {
+                            console.log("Saved: " + JSON.stringify(data))
+                        }
+                    });
+                }
+            });
         }
 
         // Map
@@ -115,6 +140,42 @@
             submitControlDiv.index = 1;
             map.controls[google.maps.ControlPosition.TOP_RIGHT].push(clearControlDiv);
             map.controls[google.maps.ControlPosition.TOP_RIGHT].push(submitControlDiv);
+
+            // Load saved polygons
+            $.ajax({
+                url: '/polygons/',
+                type: 'GET',
+                contentType: 'application/json',
+                cache: false,
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log("Error retriving: " + JSON.stringify(jqXHR));
+                },
+                success: function(data) {
+                    var results = data["results"];
+                    console.log("Got: " + results)
+                    for (i in results) {
+                        var encoded = results[i]["encoded"]
+                        path = google.maps.geometry.encoding.decodePath(decodeURIComponent(encoded));
+                        polygon = new google.maps.Polygon({
+                            paths: path,
+                            clickable: false,
+                            editable: true,
+                            strokeColor: '#FF0000',
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: '#FF0000',
+                            fillOpacity: 0.35
+                        })
+                        polygons.push(polygon);
+                        polygon.setMap(map);
+                    }
+                }
+            });
+
+            // When a polygon in completed, add it to the local array
+            google.maps.event.addDomListener(drawingManager, 'polygoncomplete', function(polygon) {
+                polygons.push(polygon);
+            });
         }
     </script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMy1XVqUls8xcnU6kjZ7XehbjrZqlkAJo&signed_in=true&callback=initMap&libraries=drawing,geometry"></script>
