@@ -153,6 +153,28 @@
             map.controls[google.maps.ControlPosition.TOP_RIGHT].push(submitControlDiv);
             map.controls[google.maps.ControlPosition.TOP_RIGHT].push(coordsDisplayDiv);
 
+            // InfoWindow
+            var infoWindow = new google.maps.InfoWindow();
+
+            function addInfoWindow(polygon, map) {
+              // Open the InfoWindow on mouseover:
+              google.maps.event.addListener(polygon, 'mouseover', function(e) {
+                 var pnt = e.latLng;
+                 infoWindow.setPosition(pnt);
+                 var lat = pnt.lat();
+                 lat = lat.toFixed(4);
+                 var lng = pnt.lng();
+                 lng = lng.toFixed(4);
+                 infoWindow.setContent(lat + ", " + lng);
+                 infoWindow.open(map);
+              });
+
+              // Close the InfoWindow on mouseout:
+              google.maps.event.addListener(polygon, 'mouseout', function() {
+                 infoWindow.close();
+              });
+            }
+
             // Load saved polygons
             $.ajax({
                 url: '/polygons/',
@@ -180,6 +202,7 @@
                         })
                         polygons.push(polygon);
                         polygon.setMap(map);
+                        addInfoWindow(polygon, map);
                     }
                 }
             });
@@ -187,6 +210,7 @@
             // When a polygon in completed, add it to the local array
             google.maps.event.addDomListener(drawingManager, 'polygoncomplete', function(polygon) {
                 polygons.push(polygon);
+                addInfoWindow(polygon, map);
             });
 
             google.maps.event.addListener(map, 'mousemove', function (event) {
